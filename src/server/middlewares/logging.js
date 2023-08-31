@@ -1,4 +1,4 @@
-const loggingMiddleware = (db) => async (req, res, next) => {
+const logging = (db) => async (req, res, next) => {
   const action = req.originalUrl;
   if (action === '/hfswapi/getLogs') {
     return next();
@@ -25,4 +25,4 @@ const loggingMiddleware = (db) => async (req, res, next) => {
   next();
 };
 
-module.exports = loggingMiddleware;
+module.exports = logging;

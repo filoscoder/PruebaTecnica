@@ -1,8 +1,4 @@
-const loggingMiddleware = require('./loggingMiddleware');
+const logging = require('./logging');
+const globalErrorHandler = require('./globalErrorHandler');
 
-const applyMiddlwares = (server, app) => {
-  server.use(loggingMiddleware(app.db));
-  return server;
-};
-
-module.exports = applyMiddlwares;
+module.exports = { logging, globalErrorHandler };
