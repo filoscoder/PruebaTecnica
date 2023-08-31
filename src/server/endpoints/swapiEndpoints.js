@@ -1,4 +1,5 @@
 const { OK } = require('http-status');
+const { ValidationError } = require('../../helpers/errors');
 
 const _isWookieeFormat = (req) =>
   req.query.format && req.query.format == 'wookiee';
@@ -71,42 +72,56 @@ const applySwapiEndpoints = (server, app) => {
     res.send(result);
   });
 
-  server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res) => {
-    const { peopleId, planetId } = req.query;
+  server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res, next) => {
+    try {
+      const { peopleId, planetId } = req.query;
 
-    let people;
-    let planet;
+      let people;
+      let planet;
 
-    const dbPeople = await db.swPeople.findByPk(peopleId);
-    if (dbPeople) {
-      people = dbPeople;
-    } else {
-      people = await app.swapiFunctions.genericRequest(
-        `https://swapi.dev/api/people/${peopleId}`,
-        'GET',
-      );
+      const dbPeople = await db.swPeople.findByPk(peopleId);
+      if (dbPeople) {
+        people = dbPeople;
+      } else {
+        people = await app.swapiFunctions.genericRequest(
+          `https://swapi.dev/api/people/${peopleId}`,
+          'GET',
+        );
+      }
+
+      const dbPlanet = await db.swPlanet.findByPk(planetId);
+      if (dbPlanet) {
+        planet = dbPlanet;
+      } else {
+        planet = await app.swapiFunctions.genericRequest(
+          `https://swapi.dev/api/planets/${planetId}`,
+          'GET',
+          null,
+          true,
+        );
+        const residentIds = planet.residents.map((residentUrl) => {
+          const residentId = residentUrl.match(/people\/(.*)\//)[1];
+
+          return residentId;
+        });
+        if (residentIds.includes(peopleId)) {
+          throw new ValidationError(
+            `El personaje: ${peopleId}, esta en su Planeta natal: ${planet.name}`,
+          );
+        }
+      }
+
+      const mass = +people.mass;
+      const gravity = +planet.gravity.replace(' standard', '');
+      const weight = app.swapiFunctions.getWeightOnPlanet(mass, gravity);
+      result.data = {
+        weight,
+      };
+
+      res.send(result);
+    } catch (error) {
+      next(error);
     }
-
-    const dbPlanet = await db.swPlanet.findByPk(planetId);
-    if (dbPlanet) {
-      planet = dbPlanet;
-    } else {
-      planet = await app.swapiFunctions.genericRequest(
-        `https://swapi.dev/api/planets/${planetId}`,
-        'GET',
-        null,
-        true,
-      );
-    }
-
-    const mass = +people.mass;
-    const gravity = +planet.gravity.replace(' standard', '');
-    const weight = app.swapiFunctions.getWeightOnPlanet(mass, gravity);
-    result.data = {
-      weight,
-    };
-
-    res.status(result.statusCode).send(result);
   });
 
   server.get('/hfswapi/getLogs', async (req, res) => {
