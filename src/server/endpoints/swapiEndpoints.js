@@ -10,8 +10,6 @@ const applySwapiEndpoints = (server, app) => {
     const data = await app.swapiFunctions.genericRequest(
       'https://swapi.dev/api/',
       'GET',
-      null,
-      true,
     );
     res.status(OK).send(data);
   });
@@ -30,16 +28,12 @@ const applySwapiEndpoints = (server, app) => {
       const fetchedPeople = await app.swapiFunctions.genericRequest(
         `https://swapi.dev/api/people/${id}`,
         'GET',
-        null,
-        true,
       );
       const { name, mass, height, homeworld } = fetchedPeople;
       const homeworldId = homeworld.match(/planets\/(.*)\//)[1];
       const fetchedHomeWorld = await app.swapiFunctions.genericRequest(
         homeworld,
         'GET',
-        null,
-        true,
       );
       const { name: homeworldName } = fetchedHomeWorld;
 
@@ -69,11 +63,8 @@ const applySwapiEndpoints = (server, app) => {
       const fetchedPlanet = await app.swapiFunctions.genericRequest(
         `https://swapi.dev/api/planets/${id}`,
         'GET',
-        null,
-        true,
       );
       const { name, gravity } = fetchedPlanet;
-      console.log(fetchedPlanet);
 
       result.data = {
         name,
@@ -101,8 +92,6 @@ const applySwapiEndpoints = (server, app) => {
       people = await app.swapiFunctions.genericRequest(
         `https://swapi.dev/api/people/${peopleId}`,
         'GET',
-        null,
-        true,
       );
     }
 
@@ -130,7 +119,11 @@ const applySwapiEndpoints = (server, app) => {
 
   server.get('/hfswapi/getLogs', async (req, res) => {
     const data = await app.db.logging.findAll();
-    res.status(result.statusCode).send(data);
+    const result = {
+      statusCode: OK,
+      data,
+    };
+    res.status(result.statusCode).send(result);
   });
 };
 
