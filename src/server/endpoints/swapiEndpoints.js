@@ -85,7 +85,47 @@ const applySwapiEndpoints = (server, app) => {
   });
 
   server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res) => {
-    res.status(result.statusCode);
+    let result = {
+      statusCode: OK,
+      data: null,
+    };
+    const { peopleId, planetId } = req.query;
+
+    let people;
+    let planet;
+
+    const dbPeople = await db.swPeople.findByPk(peopleId);
+    if (dbPeople) {
+      people = dbPeople;
+    } else {
+      people = await app.swapiFunctions.genericRequest(
+        `https://swapi.dev/api/people/${peopleId}`,
+        'GET',
+        null,
+        true,
+      );
+    }
+
+    const dbPlanet = await db.swPlanet.findByPk(planetId);
+    if (dbPlanet) {
+      planet = dbPlanet;
+    } else {
+      planet = await app.swapiFunctions.genericRequest(
+        `https://swapi.dev/api/planets/${planetId}`,
+        'GET',
+        null,
+        true,
+      );
+    }
+
+    const mass = +people.mass;
+    const gravity = +planet.gravity.replace(' standard', '');
+    const weight = app.swapiFunctions.getWeightOnPlanet(mass, gravity);
+    result.data = {
+      weight,
+    };
+
+    res.status(result.statusCode).send(result);
   });
 
   server.get('/hfswapi/getLogs', async (req, res) => {
