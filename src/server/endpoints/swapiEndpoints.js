@@ -1,11 +1,11 @@
-const _isWookieeFormat = (req) => {
-  if (req.query.format && req.query.format == 'wookiee') {
-    return true;
-  }
-  return false;
-};
+const { OK } = require('http-status');
+
+const _isWookieeFormat = (req) =>
+  req.query.format && req.query.format == 'wookiee';
 
 const applySwapiEndpoints = (server, app) => {
+  const db = app.db;
+
   server.get('/hfswapi/test', async (req, res) => {
     const data = await app.swapiFunctions.genericRequest(
       'https://swapi.dev/api/',
@@ -13,24 +13,59 @@ const applySwapiEndpoints = (server, app) => {
       null,
       true,
     );
-    res.send(data);
+    res.status(OK).send(data);
   });
 
   server.get('/hfswapi/getPeople/:id', async (req, res) => {
-    res.sendStatus(501);
+    let result = {
+      statusCode: OK,
+      data: null,
+    };
+    const id = req.params.id;
+
+    const dbPeople = await db.swPeople.findByPk(id);
+    if (dbPeople) {
+      result.data = dbPeople;
+    } else {
+      const fetchedPeople = await app.swapiFunctions.genericRequest(
+        `https://swapi.dev/api/people/${id}`,
+        'GET',
+        null,
+        true,
+      );
+      const { name, mass, height, homeworld } = fetchedPeople;
+      const homeworldId = homeworld.match(/planets\/(.*)\//)[1];
+      const fetchedHomeWorld = await app.swapiFunctions.genericRequest(
+        homeworld,
+        'GET',
+        null,
+        true,
+      );
+      const { name: homeworldName } = fetchedHomeWorld;
+
+      result.data = {
+        name,
+        mass,
+        height,
+        homeworldName,
+        homeworldId,
+      };
+    }
+
+    res.status(result.statusCode).send(result);
   });
 
   server.get('/hfswapi/getPlanet/:id', async (req, res) => {
-    res.sendStatus(501);
+    res.status(result.statusCode);
   });
 
   server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res) => {
-    res.sendStatus(501);
+    res.status(result.statusCode);
   });
 
   server.get('/hfswapi/getLogs', async (req, res) => {
     const data = await app.db.logging.findAll();
-    res.send(data);
+    res.status(result.statusCode).send(data);
   });
 };
 
