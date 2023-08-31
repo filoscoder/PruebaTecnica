@@ -5,20 +5,20 @@ const _isWookieeFormat = (req) =>
 
 const applySwapiEndpoints = (server, app) => {
   const db = app.db;
+  let result = {
+    statusCode: OK,
+    data: null,
+  };
 
   server.get('/hfswapi/test', async (req, res) => {
     const data = await app.swapiFunctions.genericRequest(
       'https://swapi.dev/api/',
       'GET',
     );
-    res.status(OK).send(data);
+    res.send(data);
   });
 
   server.get('/hfswapi/getPeople/:id', async (req, res) => {
-    let result = {
-      statusCode: OK,
-      data: null,
-    };
     const id = req.params.id;
 
     const dbPeople = await db.swPeople.findByPk(id);
@@ -46,14 +46,10 @@ const applySwapiEndpoints = (server, app) => {
       };
     }
 
-    res.status(result.statusCode).send(result);
+    res.send(result);
   });
 
   server.get('/hfswapi/getPlanet/:id', async (req, res) => {
-    let result = {
-      statusCode: OK,
-      data: null,
-    };
     const id = req.params.id;
 
     const dbPlanet = await db.swPlanet.findByPk(id);
@@ -72,14 +68,10 @@ const applySwapiEndpoints = (server, app) => {
       };
     }
 
-    res.status(result.statusCode).send(result);
+    res.send(result);
   });
 
   server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res) => {
-    let result = {
-      statusCode: OK,
-      data: null,
-    };
     const { peopleId, planetId } = req.query;
 
     let people;
@@ -118,12 +110,9 @@ const applySwapiEndpoints = (server, app) => {
   });
 
   server.get('/hfswapi/getLogs', async (req, res) => {
-    const data = await app.db.logging.findAll();
-    const result = {
-      statusCode: OK,
-      data,
-    };
-    res.status(result.statusCode).send(result);
+    result.data = await app.db.logging.findAll();
+
+    res.send(result);
   });
 };
 
