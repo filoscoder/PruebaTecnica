@@ -4,7 +4,6 @@
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "node-fetch": "^2.6.7",
-    "nodemon": "^2.0.19",
     "sequelize": "^6.21.2",
     "sequelize-cli": "^6.4.1",
     "sqlite3": "^5.0.8"
@@ -15,6 +14,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon --watch ./src index.js"
+    "dev": "nodemon --config",
+    "format": "prettier --write \"src/**/*.js\""
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.3"
   }
 }
