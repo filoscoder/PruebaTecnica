@@ -1,7 +1,5 @@
 const fetch = require('node-fetch');
 
-const getWeightOnPlanet = (mass, gravity) => mass * gravity;
-
 const genericRequest = async (url, method, body = null, logging = false) => {
   let options = {
     method: method,
@@ -18,6 +16,5 @@ const genericRequest = async (url, method, body = null, logging = false) => {
 };
 
 module.exports = {
-  getWeightOnPlanet,
   genericRequest,
 };
