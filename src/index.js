@@ -1,5 +1,3 @@
-const bodyParser = require('body-parser');
-
 const createServer = require('./server');
 
 const app = require('./app');
